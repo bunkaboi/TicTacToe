@@ -1,7 +1,7 @@
 let fields = [
     null,
-    'circle',
-    'cross',
+    null,
+    null,
     null,
     null,
     null,
@@ -9,6 +9,10 @@ let fields = [
     null,
     null
 ];
+
+let currentPlayer = 'circle'; // Startspieler
+
+let gameEnded = false;
 
 function init() {
     render();
@@ -26,13 +30,8 @@ function render() {
         tableHTML += '<tr>';
         for (let j = 0; j < 3; j++) {
             const index = i * 3 + j;
-            let symbol = '';
-            if (fields[index] === 'circle') {
-                symbol = generateSVGo();
-            } else if (fields[index] === 'cross') {
-                symbol = generateSVGx();
-            }
-            tableHTML += `<td>${symbol}</td>`;
+            let symbol = fields[index] ? generateSymbol(fields[index]) : '';
+            tableHTML += `<td onclick="handleClick(${index})">${symbol}</td>`;
         }
         tableHTML += '</tr>';
     }
@@ -40,7 +39,58 @@ function render() {
 
     // Setze den HTML-Code in den Container
     container.innerHTML = tableHTML;
+
+    // Prüfe auf Gewinner
+    const winner = checkWinner();
+    if (winner) {
+        drawWinnerLine(winner);
+        gameEnded = true;
+    }
 }
+
+function checkWinner() {
+    // Gewinnkombinationen für Tic Tac Toe
+    const winPatterns = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8], // Horizontale Reihen
+        [0, 3, 6], [1, 4, 7], [2, 5, 8], // Vertikale Reihen
+        [0, 4, 8], [2, 4, 6]             // Diagonale Reihen
+    ];
+
+    for (const pattern of winPatterns) {
+        const [a, b, c] = pattern;
+        if (fields[a] && fields[a] === fields[b] && fields[a] === fields[c]) {
+            return fields[a]; // Gewinner-Symbol ('circle' oder 'cross')
+        }
+    }
+
+    return null; // Kein Gewinner
+}
+
+function generateSymbol(symbolType) {
+    if (symbolType === 'circle') {
+        return generateSVGo();
+    } else if (symbolType === 'cross') {
+        return generateSVGx();
+    }
+}
+
+function handleClick(index) {
+    if (!gameEnded && !fields[index]) {
+        fields[index] = currentPlayer;
+        const symbol = generateSymbol(currentPlayer);
+        document.getElementsByTagName('td')[index].innerHTML = symbol;
+        document.getElementsByTagName('td')[index].onclick = null; // Entferne das onclick-Event
+
+        const winner = checkWinner();
+        if (winner) {
+            drawWinnerLine(winner);
+            gameEnded = true;
+        } else {
+            currentPlayer = currentPlayer === 'circle' ? 'cross' : 'circle'; // Wechsle den Spieler
+        }
+    }
+}
+
  
 function generateSVGo() {
 
@@ -77,4 +127,12 @@ function generateSVGx() {
     `;
 
     return svgCode;
+}
+
+function drawWinnerLine(winnerSymbol) {
+    // Hier kannst du den Code für das Zeichnen des Strichs für den Gewinner hinzufügen
+    // Beachte, dass dies vom Styling deiner Seite abhängt (CSS oder direkte SVG-Manipulation)
+    let thewinneris = document.getElementById('winner');
+    thewinneris.innerHTML = `Spieler ${winnerSymbol} hat gewonnen!`;
+    console.log(`Spieler ${winnerSymbol} hat gewonnen!`);
 }
